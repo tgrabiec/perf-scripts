@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 import sys
+import argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import events
+import filters
 from collections import defaultdict
 from matplotlib.colors import ColorConverter
 
+parser = argparse.ArgumentParser(description='Print histogram of events')
+filters.add_args(parser)
+args = parser.parse_args()
+filter = filters.get_filter(args)
+
+# x_range = (1029553.184, 1029553.190)
+#x_range = (1029333.805010, 1029333.825010)
+x_range = None
+
 
 fig, ax = plt.subplots()
-
 
 palette = {
     events.TimelineElement.RUNNING: 'green',
@@ -48,11 +58,13 @@ history_by_proc = {}
 rows = Rows(height=10)
 
 lines = list(sys.stdin)
-min_time = events.get_min_time(lines)
+min_time = None
 
 for elem in events.get_sched_timeline(lines):
-    # if not 'scylla' in elem.proc:
-    #     continue
+    if not filter(elem):
+        continue
+    if not min_time:
+        min_time = elem.start
     if not elem.proc in history_by_proc:
         hist = ProcHistory(rows.new_row(elem.proc))
         history_by_proc[elem.proc] = hist
@@ -67,7 +79,10 @@ for elem in events.get_sched_timeline(lines):
 for proc, hist in history_by_proc.iteritems():
     ax.broken_barh(hist.bars, (hist.y, rows.height - 1), facecolors=hist.colors, edgecolor='face')
 
-ax.set_xlim(min_time, min_time + 0.05)
+if x_range:
+    ax.set_xlim(x_range[0], x_range[1])
+else:
+    ax.set_xlim(min_time, min_time + 0.05)
 ax.set_xlabel('time [s]')
 rows.annotate(ax)
 

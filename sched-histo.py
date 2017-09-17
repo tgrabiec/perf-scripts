@@ -3,27 +3,16 @@ import sys
 import events
 import math
 import argparse
+import filters
 
-
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--state', '-s', type=str, choices=["woken", "preempted", "sleeping", "sleeping_uninterruptibly", "running", "delayed"], required=True)
+parser = argparse.ArgumentParser(description='Print histogram of events')
 parser.add_argument('--max', '-m', type=float, default=1.0)
-parser.add_argument('--product', '-p', action='store_true')
-parser.add_argument('--proc', default='scylla')
+parser.add_argument('--sum', action='store_true')
+filters.add_args(parser)
 args = parser.parse_args()
 
-
 max_value = args.max
-
-if args.state == 'sleeping':
-    state_filter = lambda elem: elem.state.is_sleep
-elif args.state == 'delayed':
-    state_filter = lambda elem: elem.state.is_delayed
-else:
-    state = events.state_by_name[args.state.upper()]
-    state_filter = lambda elem: elem.state == state
-
-filter = lambda elem: state_filter(elem) and args.proc in elem.proc
+filter = filters.get_filter(args)
 
 buckets = []
 thresholds = []
@@ -41,7 +30,7 @@ for elem in events.get_sched_timeline(sys.stdin):
     if filter(elem):
         for i, th in enumerate(thresholds):
             if elem.duration < th:
-                if args.product:
+                if args.sum:
                     buckets[i] += elem.duration
                 else:
                     buckets[i] += 1
@@ -54,11 +43,11 @@ if max_count:
 else:
     scale = 1
 
-print("%21s %12s" % ('duration [s]', ('count', 'sum')[args.product]))
+print("%21s %12s" % ('duration [s]', ('count', 'sum')[args.sum]))
 print("%21s %12s" % ('------------', '-----------'))
 
 for i, count in enumerate(buckets):
-    count_pattern = ('%12d', '%12f')[args.product]
+    count_pattern = ('%12d', '%12f')[args.sum]
     print(("%20.9f: " + count_pattern + " %s") % (thresholds[i], count, '#' * int(math.ceil(scale * count))))
 
 print("total: %10f" % (sum(buckets)))
