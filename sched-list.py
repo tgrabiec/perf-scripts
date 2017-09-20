@@ -12,7 +12,7 @@ args = parser.parse_args()
 filter = filters.get_filter(args)
 wakeup_granularity = args.wakeup_granularity
 
-for elem in events.get_sched_timeline(sys.stdin, generate_runnable=True):
+for elem in events.get_sched_timeline(sys.stdin, generate_runnable=False):
     if not filter(elem):
         continue
     flags = ''
