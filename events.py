@@ -136,7 +136,7 @@ class TimelineElement:
     RUNNING = State("RUNNING", is_running=True)
     IS_RUNNABLE = State("IS_RUNNABLE")
 
-    def __init__(self, cpu, proc, start, duration, state, wakeup_vruntime_delta=None, vruntime=None):
+    def __init__(self, cpu, proc, start, duration, state, wakeup_vruntime_delta=None, vruntime=None, start_stack=None, end_stack=None):
         self.cpu = cpu
         self.proc = proc
         self.start = start
@@ -144,21 +144,27 @@ class TimelineElement:
         self.state = state
         self.wakeup_vruntime_delta = wakeup_vruntime_delta
         self.vruntime = vruntime
+        self.start_stack = start_stack
+        self.end_stack = end_stack
 
 class Trace:
-    def __init__(self, time, curr, cpu, event):
+    def __init__(self, time, curr, cpu, event, stack):
         self.event = event
         self.cpu = cpu
         self.curr = curr
         self.time = time
+        self.stack = stack
 
 #  sudo perf record \
 #    -e sched:sched_stat_runtime \
 #    -e sched:sched_wakeup \
 #    -e sched:sched_switch
 def get_traces(lines):
-    for line in lines:
-        if line.startswith('#'):
+    i = iter(lines)
+    line = i.next()
+    while True:
+        if line.startswith('#') or line.startswith('\n'):
+            line = i.next()
             continue
         columns = line.split()
         name_and_pid = []
@@ -181,8 +187,16 @@ def get_traces(lines):
             event = parse_sched_wakeup(columns)
         elif event_name == 'sched:sched_switch':
             event = parse_sched_switch(columns)
+
+        # Parse stacktrace
+        line = i.next()
+        stack = []
+        while line.startswith('\t'):
+            stack.append(line.strip('\t\n ').split()[1])
+            line = i.next()
+
         if event:
-            yield Trace(time, curr, cpu, event)
+            yield Trace(time, curr, cpu, event, stack)
 
 def get_vruntime_history(traces):
     def nano_to_sec(nanos):
@@ -216,7 +230,7 @@ def get_sched_timeline(lines, generate_runnable=False):
         elif ev.name == 'sched:sched_switch':
             old_proc = ev.old_proc
             new_proc = ev.new_proc
-            switched_out[old_proc] = (time, ev.old_state)
+            switched_out[old_proc] = (time, ev.old_state, trace.stack)
             switched_in[new_proc] = time
             if old_proc in wakeup_history:
                 del wakeup_history[old_proc]
@@ -227,7 +241,7 @@ def get_sched_timeline(lines, generate_runnable=False):
             if generate_runnable and 'R' in ev.old_state:
                 yield TimelineElement(cpu, ev.old_proc, time, 0, TimelineElement.IS_RUNNABLE)
             if new_proc in switched_out:
-                switched_out_at, proc_state = switched_out[new_proc]
+                switched_out_at, proc_state, switchout_stack = switched_out[new_proc]
                 del switched_out[new_proc]
                 if 'R' in proc_state:
                     state = TimelineElement.PREEMPTED
@@ -240,10 +254,10 @@ def get_sched_timeline(lines, generate_runnable=False):
                 if new_proc in wakeup_history:
                     wakeup_time, delta = wakeup_history[new_proc]
                     del wakeup_history[new_proc]
-                    yield TimelineElement(cpu, new_proc, switched_out_at, wakeup_time - switched_out_at, state)
-                    yield TimelineElement(cpu, new_proc, wakeup_time, time - wakeup_time, TimelineElement.WOKEN, delta)
+                    yield TimelineElement(cpu, new_proc, switched_out_at, wakeup_time - switched_out_at, state, start_stack=switchout_stack, end_stack=trace.stack)
+                    yield TimelineElement(cpu, new_proc, wakeup_time, time - wakeup_time, TimelineElement.WOKEN, delta, start_stack=switchout_stack)
                 else:
-                    yield TimelineElement(cpu, new_proc, switched_out_at, time - switched_out_at, state)
+                    yield TimelineElement(cpu, new_proc, switched_out_at, time - switched_out_at, state, start_stack=switchout_stack, end_stack=trace.stack)
             elif new_proc in wakeup_history:
                 wakeup_time, delta = wakeup_history[new_proc]
                 del wakeup_history[new_proc]
