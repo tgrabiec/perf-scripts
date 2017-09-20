@@ -8,7 +8,7 @@ import filters
 parser = argparse.ArgumentParser(description='Print histogram of events')
 parser.add_argument('--max', '-m', type=float, default=1.0)
 parser.add_argument('--sum', action='store_true')
-filters.add_args(parser)
+filters.add_all_filters(parser)
 args = parser.parse_args()
 
 max_value = args.max

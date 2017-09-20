@@ -9,7 +9,7 @@ from collections import defaultdict
 from matplotlib.colors import ColorConverter
 
 parser = argparse.ArgumentParser(description='Print histogram of events')
-filters.add_args(parser)
+filters.add_all_filters(parser)
 args = parser.parse_args()
 filter = filters.get_filter(args)
 

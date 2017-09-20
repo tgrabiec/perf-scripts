@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='List scheduling history')
 parser.add_argument('--wakeup-granularity', type=float, default=0.000010)
-filters.add_args(parser)
+filters.add_all_filters(parser)
 args = parser.parse_args()
 
 filter = filters.get_filter(args)
