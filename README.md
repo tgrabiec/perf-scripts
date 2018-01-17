@@ -27,15 +27,15 @@ Generating flame graph for uninterruptible sleeps:
 Find longest sleeps:
 
 ```
-./sched-list.py --state sleeping < perf.log | sort -r -k4 | head
-[000] perf_fast_forwa:2088 5632.083301: duration=0.000050 [s] SLEEPING  
-[000] perf_fast_forwa:2088 5632.642553: duration=0.000050 [s] SLEEPING  
-[000] perf_fast_forwa:2088 5630.629793: duration=0.000051 [s] SLEEPING  
-[000] syscall-0:2091       5631.569756: duration=0.000051 [s] SLEEPING  
-[000] syscall-0:2091       5632.642284: duration=0.000051 [s] SLEEPING  
-[000] syscall-0:2091       5631.532691: duration=0.000052 [s] SLEEPING_UNINTERRUPTIBLY
-[000] perf_fast_forwa:2088 5630.643221: duration=0.000053 [s] SLEEPING  
-[000] perf_fast_forwa:2088 5631.569045: duration=0.000053 [s] SLEEPING  
-[000] syscall-0:2091       5631.528246: duration=0.000053 [s] SLEEPING  
-[000] syscall-0:2091       5631.528976: duration=0.000053 [s] SLEEPING  
+./sched-list.py --proc perf_fast --state sleeping < perf.log | sort -r -k4 | head
+[000] perf_fast_forwa:2088 5632.127121: duration=0.009826 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5631.824382: duration=0.009821 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5632.439547: duration=0.009800 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5632.399226: duration=0.009795 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5632.157513: duration=0.009785 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5632.086809: duration=0.009674 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5632.358935: duration=0.009621 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5631.260176: duration=0.009484 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5630.756756: duration=0.009301 [s] SLEEPING  
+[000] perf_fast_forwa:2088 5631.421351: duration=0.009291 [s] SLEEPING  
 ```
