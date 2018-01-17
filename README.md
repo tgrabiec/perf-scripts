@@ -9,7 +9,7 @@ sudo perf record \
     -p `pgrep scylla`
 ```
 
-For flame graphs, you need to also collect backtraces by adding `--call-graph dwarf` to the command line argments.
+For flame graphs, you need to also collect backtraces by adding `--call-graph dwarf` to the command line arguments.
 
 2. Generate the log
 
