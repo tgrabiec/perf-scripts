@@ -64,7 +64,11 @@ def parse_proc_name(columns):
             proc += ':' + columns[0].split('=')[1]
             columns.pop(0)
         else:
-            proc = columns[0]
+            proc = ''
+            while not ':' in columns[0]:
+                proc += columns[0]
+                columns.pop(0)
+            proc += columns[0]
             columns.pop(0)
     except:
         print(columns)
