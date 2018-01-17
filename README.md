@@ -27,7 +27,7 @@ Generating flame graph for uninterruptible sleeps:
 Find longest sleeps:
 
 ```
-./sched-list.py --state sleeping < perf.log | sort -k4 | head
+./sched-list.py --state sleeping < perf.log | sort -r -k4 | head
 [000] perf_fast_forwa:2088 5632.083301: duration=0.000050 [s] SLEEPING  
 [000] perf_fast_forwa:2088 5632.642553: duration=0.000050 [s] SLEEPING  
 [000] perf_fast_forwa:2088 5630.629793: duration=0.000051 [s] SLEEPING  
