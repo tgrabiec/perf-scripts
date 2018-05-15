@@ -10,8 +10,8 @@ import matplotlib.cm as cmx
 import matplotlib.colors as colors
 
 #x_range = (1029553.184, 1029553.190)
-x_range = (1322034.361148993, 1322034.3851439261)
-#x_range = None
+#x_range = (1322034.361148993, 1322034.3851439261)
+x_range = None
 
 fig, ax = plt.subplots()
 
